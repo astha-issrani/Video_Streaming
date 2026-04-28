@@ -11,7 +11,7 @@ app.use(cors({
       process.env.CLIENT_URL,
       'http://localhost:5173'
     ];
-    if (!origin || allowed.includes(origin)) {
+    if (!origin || origin.startsWith('chrome-extension://') || allowed.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error('Not allowed by CORS'));
