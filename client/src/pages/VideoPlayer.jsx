@@ -8,7 +8,7 @@ export default function VideoPlayer() {
 
   useEffect(() => {
     // Use /stream instead of direct /:id
-    axios.get(`http://localhost:5000/api/videos/${id}/stream`)
+    axios.get(`https://heroic-smile-production.up.railway.app/api/videos/${id}/stream`)
       .then(r => setVideo(r.data));
   }, [id]);
 

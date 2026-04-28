@@ -6,7 +6,7 @@ export default function Home() {
   const [videos, setVideos] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/api/videos').then(r => setVideos(r.data));
+    axios.get('https://heroic-smile-production.up.railway.app/api/videos').then(r => setVideos(r.data));
   }, []);
 
   return (
