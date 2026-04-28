@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
+import { useAuth } from '../context/useAuth';
 
 function formatDateLabel(dateStr) {
   const date = new Date(dateStr);
@@ -30,6 +31,7 @@ export default function Home() {
   const [videos, setVideos] = useState([]);
   const [searchDate, setSearchDate] = useState('');
   const [filtered, setFiltered] = useState([]);
+  const { user, token } = useAuth();
 
   useEffect(() => {
     axios.get('https://heroic-smile-production.up.railway.app/api/videos')
@@ -48,6 +50,20 @@ export default function Home() {
     setFiltered(videos.filter(v => new Date(v.createdAt).toDateString() === selected));
   };
 
+  const handleDelete = async (e, videoId) => {
+    e.preventDefault();
+    if (!window.confirm('Delete this video?')) return;
+    try {
+      await axios.delete(`https://heroic-smile-production.up.railway.app/api/videos/${videoId}`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      setVideos(prev => prev.filter(v => v._id !== videoId));
+      setFiltered(prev => prev.filter(v => v._id !== videoId));
+    } catch (err) {
+      alert('Failed to delete: ' + (err.response?.data?.message || err.message));
+    }
+  };
+
   const grouped = groupByDate(filtered);
 
   return (
@@ -59,64 +75,34 @@ export default function Home() {
         padding: '48px 24px 40px',
         textAlign: 'center',
       }}>
-        <h1 style={{
-          color: '#fff',
-          fontSize: 38,
-          fontWeight: 800,
-          margin: '0 0 6px',
-          letterSpacing: '-0.5px'
-        }}>
+        <h1 style={{ color: '#fff', fontSize: 38, fontWeight: 800, margin: '0 0 6px', letterSpacing: '-0.5px' }}>
           🎬 All Videos
         </h1>
         <p style={{ color: '#a0a8c0', margin: '0 0 28px', fontSize: 15 }}>
           Browse and watch all uploaded content
         </p>
 
-        {/* Search Bar */}
+        {/* Date Search */}
         <div style={{
-          display: 'inline-flex',
-          alignItems: 'center',
-          gap: 10,
+          display: 'inline-flex', alignItems: 'center', gap: 10,
           background: 'rgba(255,255,255,0.08)',
           border: '1px solid rgba(255,255,255,0.15)',
-          borderRadius: 50,
-          padding: '10px 20px',
+          borderRadius: 50, padding: '10px 20px',
           backdropFilter: 'blur(10px)',
         }}>
           <span style={{ fontSize: 16 }}>📅</span>
           <input
-            type="date"
-            value={searchDate}
-            onChange={handleDateSearch}
-            style={{
-              background: 'transparent',
-              border: 'none',
-              outline: 'none',
-              color: '#fff',
-              fontSize: 14,
-              cursor: 'pointer',
-              colorScheme: 'dark',
-            }}
+            type="date" value={searchDate} onChange={handleDateSearch}
+            style={{ background: 'transparent', border: 'none', outline: 'none', color: '#fff', fontSize: 14, cursor: 'pointer', colorScheme: 'dark' }}
           />
           {searchDate && (
-            <button
-              onClick={() => { setSearchDate(''); setFiltered(videos); }}
-              style={{
-                background: 'rgba(255,255,255,0.15)',
-                border: 'none',
-                color: '#fff',
-                borderRadius: 20,
-                padding: '3px 12px',
-                cursor: 'pointer',
-                fontSize: 12,
-              }}
-            >
+            <button onClick={() => { setSearchDate(''); setFiltered(videos); }}
+              style={{ background: 'rgba(255,255,255,0.15)', border: 'none', color: '#fff', borderRadius: 20, padding: '3px 12px', cursor: 'pointer', fontSize: 12 }}>
               ✕ Clear
             </button>
           )}
         </div>
 
-        {/* Stats */}
         <div style={{ marginTop: 16, color: '#a0a8c0', fontSize: 13 }}>
           {filtered.length} video{filtered.length !== 1 ? 's' : ''} found
         </div>
@@ -145,41 +131,27 @@ export default function Home() {
                   : dateLabel === 'Yesterday'
                   ? 'linear-gradient(135deg, #444, #666)'
                   : 'linear-gradient(135deg, #888, #aaa)',
-                color: '#fff',
-                padding: '5px 18px',
-                borderRadius: 25,
-                fontSize: 13,
-                fontWeight: 700,
+                color: '#fff', padding: '5px 18px', borderRadius: 25,
+                fontSize: 13, fontWeight: 700,
                 boxShadow: dateLabel === 'Today' ? '0 4px 15px rgba(108,99,255,0.4)' : 'none',
               }}>
                 {dateLabel}
               </div>
               <div style={{ flex: 1, height: 1, background: 'linear-gradient(to right, #e0e0f0, transparent)' }} />
-              <span style={{
-                color: '#aaa', fontSize: 12,
-                background: '#fff',
-                padding: '3px 10px',
-                borderRadius: 20,
-                border: '1px solid #eee'
-              }}>
+              <span style={{ color: '#aaa', fontSize: 12, background: '#fff', padding: '3px 10px', borderRadius: 20, border: '1px solid #eee' }}>
                 {vids.length} video{vids.length > 1 ? 's' : ''}
               </span>
             </div>
 
             {/* Video Grid */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
-              gap: 22
-            }}>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 22 }}>
               {vids.map(v => (
                 <Link key={v._id} to={`/video/${v._id}`} style={{ textDecoration: 'none', color: 'inherit' }}>
                   <div style={{
-                    background: '#fff',
-                    borderRadius: 14,
-                    overflow: 'hidden',
+                    background: '#fff', borderRadius: 14, overflow: 'hidden',
                     boxShadow: '0 2px 12px rgba(0,0,0,0.07)',
                     transition: 'transform 0.2s, box-shadow 0.2s',
+                    position: 'relative'
                   }}
                     onMouseEnter={e => {
                       e.currentTarget.style.transform = 'translateY(-5px)';
@@ -190,22 +162,32 @@ export default function Home() {
                       e.currentTarget.style.boxShadow = '0 2px 12px rgba(0,0,0,0.07)';
                     }}
                   >
+                    {/* Delete Button */}
+                    {user && v.uploader?.username === user.username && (
+                      <button
+                        onClick={(e) => handleDelete(e, v._id)}
+                        style={{
+                          position: 'absolute', top: 10, right: 10,
+                          background: 'rgba(239,68,68,0.85)',
+                          border: 'none', color: '#fff', borderRadius: 6,
+                          padding: '4px 10px', fontSize: 12,
+                          cursor: 'pointer', zIndex: 10, fontWeight: 600,
+                        }}
+                      >
+                        🗑 Delete
+                      </button>
+                    )}
+
                     {/* Thumbnail */}
                     <div style={{
                       background: 'linear-gradient(135deg, #1a1a2e, #0f3460)',
-                      height: 160,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      position: 'relative'
+                      height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       <div style={{
                         width: 48, height: 48,
-                        background: 'rgba(255,255,255,0.15)',
-                        borderRadius: '50%',
+                        background: 'rgba(255,255,255,0.15)', borderRadius: '50%',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        backdropFilter: 'blur(4px)',
-                        border: '1px solid rgba(255,255,255,0.2)'
+                        backdropFilter: 'blur(4px)', border: '1px solid rgba(255,255,255,0.2)'
                       }}>
                         <span style={{ color: '#fff', fontSize: 20, marginLeft: 3 }}>▶</span>
                       </div>
@@ -214,20 +196,13 @@ export default function Home() {
                     {/* Info */}
                     <div style={{ padding: '14px 16px' }}>
                       <strong style={{
-                        display: 'block',
-                        fontSize: 15,
-                        marginBottom: 6,
-                        color: '#1a1a2e',
-                        whiteSpace: 'nowrap',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
+                        display: 'block', fontSize: 15, marginBottom: 6, color: '#1a1a2e',
+                        whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis'
                       }}>
                         {v.title}
                       </strong>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                        <span style={{ fontSize: 12, color: '#888' }}>
-                          👤 {v.uploader?.username}
-                        </span>
+                        <span style={{ fontSize: 12, color: '#888' }}>👤 {v.uploader?.username}</span>
                         <span style={{ fontSize: 12, color: '#888' }}>
                           👁 {v.views} · 🕐 {new Date(v.createdAt).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
                         </span>
