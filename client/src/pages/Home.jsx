@@ -34,7 +34,7 @@ export default function Home() {
   const { user, token } = useAuth();
 
   useEffect(() => {
-    axios.get('https://heroic-smile-production.up.railway.app/api/videos')
+    axios.get(`${import.meta.env.VITE_API_URL}/api/videos`)
       .then(r => {
         setVideos(r.data);
         setFiltered(r.data);
@@ -54,7 +54,7 @@ export default function Home() {
     e.preventDefault();
     if (!window.confirm('Delete this video?')) return;
     try {
-      await axios.delete(`https://heroic-smile-production.up.railway.app/api/videos/${videoId}`, {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/videos/${videoId}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       setVideos(prev => prev.filter(v => v._id !== videoId));
