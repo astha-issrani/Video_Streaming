@@ -6,19 +6,7 @@ require('dotenv').config();
 const app = express();
 
 app.use(cors({
-  origin: (origin, callback) => {
-    const allowed = [
-      process.env.CLIENT_URL,
-      'http://localhost:5173',
-      'https://video-streaming-livid-eight.vercel.app'
-    ];
-    if (!origin || origin.startsWith('chrome-extension://') || allowed.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked origin:', origin); // add this line
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+  origin: true,
   credentials: true
 }));
 
