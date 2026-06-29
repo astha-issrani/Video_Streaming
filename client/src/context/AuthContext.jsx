@@ -1,4 +1,5 @@
 import { createContext, useContext, useState } from 'react';
+import { getStoredAuth } from '../utils/token';
 
 export const AuthContext = createContext(null);
 
@@ -8,13 +9,12 @@ export function useAuth() {
 
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(() => {
-    // Initialize directly from localStorage (no useEffect needed)
-    const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
+    const { user: storedUser } = getStoredAuth();
+    return storedUser;
   });
-
   const [token, setToken] = useState(() => {
-    return localStorage.getItem('token') || null;
+    const { token: storedToken } = getStoredAuth();
+    return storedToken;
   });
 
   const login = (userData, jwt) => {

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/useAuth';
 
 function formatDateLabel(dateStr) {
@@ -31,7 +31,8 @@ export default function Home() {
   const [videos, setVideos] = useState([]);
   const [searchDate, setSearchDate] = useState('');
   const [filtered, setFiltered] = useState([]);
-  const { user, token } = useAuth();
+  const { user, token, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     axios.get(`${import.meta.env.VITE_API_URL}/api/videos`)
@@ -60,6 +61,12 @@ export default function Home() {
       setVideos(prev => prev.filter(v => v._id !== videoId));
       setFiltered(prev => prev.filter(v => v._id !== videoId));
     } catch (err) {
+      if (err.response?.status === 401) {
+        logout();
+        alert('Your session expired. Please log in again.');
+        navigate('/login');
+        return;
+      }
       alert('Failed to delete: ' + (err.response?.data?.message || err.message));
     }
   };
